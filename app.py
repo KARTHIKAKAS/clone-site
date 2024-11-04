@@ -2,7 +2,8 @@
 from flask import Flask, request, render_template, jsonify
 from utils import *
 import threading
-
+import os
+PORT = os.environ.get('PORT', 5000)
 app = Flask(__name__)
 
 # Global variable to store progress percentage
@@ -45,4 +46,5 @@ def get_progress():
     return jsonify(progress)
     
 if __name__ == '__main__':
-    app.run(debug=True)
+    print('starting web app...')
+    app.run(host='0.0.0.0', port=PORT)
