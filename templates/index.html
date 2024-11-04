@@ -1,0 +1,183 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 1200px;
+            padding: 20px;
+        }
+        .search-form {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .search-form input[type="text"] {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        .search-form button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .search-form button:hover {
+            background-color: #45a049;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #f3f3f3;
+            border-radius: 5px;
+            margin-top: 20px;
+            height: 20px;
+            position: relative;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: #4caf50;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        .progress-text {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            color: #333;
+        }
+        .progress-table-section {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            border: 2px solid black; /* Add black border around the table */
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid black; /* Add black border around table cells */
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .results-section {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-form">
+        <h2>Search Records</h2>
+        <form method="POST" onsubmit="startProgress()">
+            <input type="text" name="name" placeholder="Enter Name" required>
+            <input type="text" name="door" placeholder="Door Number (optional)">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <!-- Progress bar section -->
+    <div class="progress-container">
+        <div id="progressBar" class="progress-bar"></div>
+        <span id="progressText" class="progress-text">0%</span> <!-- Percentage text -->
+    </div>
+
+    <!-- Progress Table Section -->
+    <!-- <div class="progress-table-section">
+        <h3>Progress Updates</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Update</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody id="progressTableBody">
+                <tr>
+                    <td>Current Progress</td>
+                    <td id="currentProgress">0%</td>
+                </tr>
+            </tbody>
+        </table>
+    </div> -->
+
+    <div class="results-section">
+        {% if results %}
+            {% for circle, data in results %}
+                <h3>Circle: {{ circle }}</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>PTIN NO</th>
+                            <th>Owner Name</th>
+                            <th>Door Number</th>
+                            <th>Locality</th>
+                            <th>Circle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in data %}
+                            <tr>
+                                <td>{{ record[0] }}</td>
+                                <td>{{ record[1] }}</td>
+                                <td>{{ record[2] }}</td>
+                                <td>{{ record[3] }}</td>
+                                <td>{{ record[4] }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endfor %}
+        {% else %}
+            {% if request.method == 'POST' %}
+                <p>No results found.</p>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <!-- JavaScript for updating the progress bar -->
+    <script>
+        let progressInterval;
+
+        function updateProgressBar() {
+            fetch('/api/get-progress')
+                .then(response => response.json())
+                .then(data => {
+                    const progressBar = document.getElementById('progressBar');
+                    const progressText = document.getElementById('progressText');
+                    const currentProgress = document.getElementById('currentProgress');
+
+                    progressBar.style.width = data.value + '%';
+                    progressText.textContent = data.value + '%'; // Update the percentage text
+                    currentProgress.textContent = data.value + '%'; // Update the table
+
+                    // Stop polling if progress is complete
+                    if (data.value >= 100) {
+                        clearInterval(progressInterval);
+                    }
+                });
+        }
+
+        function startProgress() {
+            // Start polling for progress updates every second
+            progressInterval = setInterval(updateProgressBar, 1000);
+        }
+    </script>
+</body>
+</html>
